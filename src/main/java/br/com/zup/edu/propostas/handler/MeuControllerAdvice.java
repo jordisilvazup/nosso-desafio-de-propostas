@@ -5,9 +5,14 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.*;
 
 @RestControllerAdvice
 public class MeuControllerAdvice {
@@ -24,4 +29,16 @@ public class MeuControllerAdvice {
 
         return ResponseEntity.badRequest().body(erros);
     }
+
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<?> responseStatusException(ResponseStatusException ex) {
+
+
+        Map<String, String> response = Map.of("erro", requireNonNull(ex.getReason()));
+
+        return ResponseEntity.unprocessableEntity().body(response);
+    }
+
+
 }

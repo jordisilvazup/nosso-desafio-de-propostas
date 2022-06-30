@@ -1,10 +1,15 @@
 package br.com.zup.edu.propostas.controller.request;
 
 import br.com.zup.edu.propostas.model.Proposta;
+import br.com.zup.edu.propostas.repository.PropostaRepository;
 import br.com.zup.edu.propostas.validation.DocumentoValido;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
+
+import static org.springframework.http.HttpStatus.*;
 
 public class PropostaRequest {
 
@@ -24,6 +29,7 @@ public class PropostaRequest {
 
     @NotNull
     @Positive
+    @DecimalMin()
     private BigDecimal salario;
 
 
@@ -35,7 +41,11 @@ public class PropostaRequest {
         this.salario = salario;
     }
 
-    public Proposta toModel(){
+    public Proposta toModel(PropostaRepository repository){
+        if(repository.existsByDocumento(documento)){
+            throw new ResponseStatusException(UNPROCESSABLE_ENTITY,"Já possui uma proposta para este documento");
+        }
+
         return new Proposta(documento,endereco,nome,email,salario);
     }
 

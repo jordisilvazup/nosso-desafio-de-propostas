@@ -9,13 +9,19 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,11 +40,15 @@ class CriarPropostaControllerTest extends BaseIntegrationTest {
         repository.deleteAll();
     }
 
-    @Test
+
+    @ParameterizedTest(
+           name = "{index}=> documento={0}"
+    )
+    @MethodSource("documentoValidoProvider")
     @DisplayName("deve criar uma proposta para cartao")
-    void test() throws Exception {
+    void test(String documento) throws Exception {
         PropostaRequest propostaRequest = new PropostaRequest(
-                "65.804.581/0001-60",
+                documento,
                 "Rua das Gamelheiras n 82 , Barro Branco, Rio de Janeiro",
                 "Jordi Henrique Marques Silva",
                 "jordi.silva@zup.com.br",
@@ -227,4 +237,58 @@ class CriarPropostaControllerTest extends BaseIntegrationTest {
                         "O campo salario deve ser maior que 0"
                 );
     }
+
+    @Test
+    @DisplayName("nao deve criar mais de uma proposta por documento")
+    void test5() throws Exception {
+
+        Proposta proposta = new Proposta("65804581000160",
+                "Rua das Gamelheiras n 82 , Barro Branco, Rio de Janeiro",
+                "Jordi Henrique Marques Silva",
+                "jordi.silva@zup.com.br",
+                BigDecimal.TEN);
+
+        repository.save(proposta);
+
+        PropostaRequest propostaRequest = new PropostaRequest(
+                "65.804.581/0001-60",
+                "Rua das Gamelheiras n 82 , Barro Branco, Rio de Janeiro",
+                "Jordi Henrique Marques Silva",
+                "jordi.silva@zup.com.br",
+                BigDecimal.TEN
+        );
+
+        String payloadRequest = mapper.writeValueAsString(propostaRequest);
+
+        String payloadResponse = mockMvc.perform(
+                        post("/api/v1/propostas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payloadRequest)
+                                .header("Accept-Language", "pt-br")
+                )
+                .andExpect(status().isUnprocessableEntity())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        TypeFactory typeFactory = mapper.getTypeFactory();
+
+        Map<String, String> response = mapper.readValue(
+                payloadResponse,
+                typeFactory.constructMapType(HashMap.class, String.class, String.class)
+        );
+
+        assertTrue(response.containsKey("erro"));
+        assertEquals("Já possui uma proposta para este documento", response.get("erro"));
+    }
+
+    public static Stream<Arguments> documentoValidoProvider(){
+        return Stream.of(
+                Arguments.of("65.804.581/0001-60"),
+                Arguments.of("279.541.330-28"),
+                Arguments.of("03153553017"),
+                Arguments.of("03227436000106")
+        );
+    }
+
 }

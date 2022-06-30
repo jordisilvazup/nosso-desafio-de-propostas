@@ -4,6 +4,11 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "UK_DOCUMENTO", columnNames = "documento")
+        }
+)
 public class Proposta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +28,6 @@ public class Proposta {
 
     @Column(nullable = false)
     private BigDecimal salario;
-
 
 
     public Proposta(String documento, String endereco, String nome, String email, BigDecimal salario) {
