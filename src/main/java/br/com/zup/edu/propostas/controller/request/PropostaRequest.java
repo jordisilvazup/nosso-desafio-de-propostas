@@ -29,7 +29,6 @@ public class PropostaRequest {
 
     @NotNull
     @Positive
-    @DecimalMin()
     private BigDecimal salario;
 
 
