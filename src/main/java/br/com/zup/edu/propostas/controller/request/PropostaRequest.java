@@ -3,13 +3,15 @@ package br.com.zup.edu.propostas.controller.request;
 import br.com.zup.edu.propostas.model.Proposta;
 import br.com.zup.edu.propostas.repository.PropostaRepository;
 import br.com.zup.edu.propostas.validation.DocumentoValido;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 public class PropostaRequest {
 
@@ -41,11 +43,17 @@ public class PropostaRequest {
     }
 
     public Proposta toModel(PropostaRepository repository){
-        if(repository.existsByDocumento(documento)){
+
+        // The Pastel's Law = Lei da Robustez
+        //    - seja liberal no que vc recebe
+        //    - seja conservador no que vc envia
+
+        String documentoSemMascara = documento.replaceAll("[^0-9]", "");
+        if(repository.existsByDocumento(documentoSemMascara)) {
             throw new ResponseStatusException(UNPROCESSABLE_ENTITY,"Já possui uma proposta para este documento");
         }
 
-        return new Proposta(documento,endereco,nome,email,salario);
+        return new Proposta(documentoSemMascara,endereco,nome,email,salario);
     }
 
     public String getDocumento() {
