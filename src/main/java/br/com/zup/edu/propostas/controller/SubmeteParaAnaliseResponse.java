@@ -34,4 +34,13 @@ public class SubmeteParaAnaliseResponse {
     public String getResultadoSolicitacao() {
         return resultadoSolicitacao;
     }
+
+    public StatusDaProposta toStatusDaProposta() {
+
+        if (resultadoSolicitacao.equals("SEM_RESTRICAO")) {
+            return StatusDaProposta.ELEGIVEL;
+        }
+
+        return StatusDaProposta.NAO_ELEGIVEL;
+    }
 }

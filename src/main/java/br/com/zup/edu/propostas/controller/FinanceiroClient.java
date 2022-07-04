@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(
     name = "financeiroClient",
-    url = "http://localhost:9999"
+    url = "${integracoes.financeiro.url}"
 )
 public interface FinanceiroClient {
 

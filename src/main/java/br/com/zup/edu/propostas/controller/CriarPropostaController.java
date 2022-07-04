@@ -4,13 +4,10 @@ import br.com.zup.edu.propostas.controller.request.PropostaRequest;
 import br.com.zup.edu.propostas.model.Proposta;
 import br.com.zup.edu.propostas.repository.PropostaRepository;
 import feign.FeignException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.transaction.Transactional;
@@ -28,7 +25,7 @@ public class CriarPropostaController {
         this.financeiroClient = financeiroClient;
     }
 
-    @Transactional
+    @Transactional // tem um Contexto de Persistencia
     @PostMapping("/api/v1/propostas")
     public ResponseEntity<?> criar(
             @RequestBody @Valid PropostaRequest request, UriComponentsBuilder uriComponentsBuilder
@@ -37,7 +34,25 @@ public class CriarPropostaController {
         Proposta proposta = request.toModel(repository);
         repository.save(proposta); // INSERT -> MANAGED
 
-        // TODO: submeter proposta para analise
+        // submeter proposta para analise
+        StatusDaProposta status = submetePropostaParaAnalise(proposta);
+        proposta.setStatus(status);
+
+        URI location = uriComponentsBuilder.path("/api/v1/propostas/{id}")
+                .buildAndExpand(proposta.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).build();
+    }
+
+    private StatusDaProposta submetePropostaParaAnalise(Proposta proposta) {
+
+        try {
+            Thread.sleep(20*1000*60); // 20min
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         try {
             // 2xx ou 404 (null)
             SubmeteParaAnaliseResponse resultado = financeiroClient
@@ -45,24 +60,11 @@ public class CriarPropostaController {
                             proposta.getId(), proposta.getDocumento(), proposta.getNome())
                     );
 
-            if (resultado.getResultadoSolicitacao().equals("SEM_RESTRICAO")) {
-                proposta.setStatus(StatusDaProposta.ELEGIVEL);
-            } else {
-                // status que eu NAO conheço
-                proposta.setStatus(StatusDaProposta.NAO_ELEGIVEL);
-            }
+            // early return
+            return resultado.toStatusDaProposta();
 
-        } catch (FeignException.UnprocessableEntity e) { // 422
-            // erro 422 = COM_RESTRICAO
-            proposta.setStatus(StatusDaProposta.NAO_ELEGIVEL);
+        } catch (FeignException.UnprocessableEntity e) {   // erro 422 = COM_RESTRICAO
+            return StatusDaProposta.NAO_ELEGIVEL;
         }
-
-
-        URI location = uriComponentsBuilder.path("/api/v1/propostas/{id}")
-                .buildAndExpand(proposta.getId())
-                .toUri();
-
-        return ResponseEntity.created(location).build();
-
     }
 }
