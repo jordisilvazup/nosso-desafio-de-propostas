@@ -1,6 +1,9 @@
 package br.com.zup.edu.propostas.model;
 
+import br.com.zup.edu.propostas.controller.StatusDaProposta;
+
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Entity
@@ -29,6 +32,15 @@ public class Proposta {
     @Column(nullable = false)
     private BigDecimal salario;
 
+    /**
+     * Migrations:
+     *  1. cria coluna NULLABLE
+     *  2. UPDATE para definir todas as linhas como `ELEGIVEL`
+     *  3. altera coluna para NOT_NULL
+     */
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private StatusDaProposta status = StatusDaProposta.NAO_ELEGIVEL;
 
     public Proposta(String documento, String endereco, String nome, String email, BigDecimal salario) {
         this.documento = documento;
@@ -48,5 +60,20 @@ public class Proposta {
 
     public Long getId() {
         return id;
+    }
+
+    public String getDocumento() {
+        return documento;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public StatusDaProposta getStatus() {
+        return status;
+    }
+    public void setStatus(StatusDaProposta status) {
+        this.status = status;
     }
 }
