@@ -4,17 +4,19 @@ import br.com.zup.edu.propostas.controller.request.PropostaRequest;
 import br.com.zup.edu.propostas.model.Proposta;
 import br.com.zup.edu.propostas.repository.PropostaRepository;
 import br.com.zup.edu.propostas.utils.BaseIntegrationTest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -25,14 +27,19 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 class CriarPropostaControllerTest extends BaseIntegrationTest {
+
     @Autowired
     private PropostaRepository repository;
+
+    @MockBean
+    private FinanceiroClient financeiroClientMock; // Mockito.mock(FinanceiroClient.class)
 
 
     @BeforeEach
@@ -40,15 +47,87 @@ class CriarPropostaControllerTest extends BaseIntegrationTest {
         repository.deleteAll();
     }
 
-
-    @ParameterizedTest(
-           name = "{index}=> documento={0}"
-    )
-    @MethodSource("documentoValidoProvider")
-    @DisplayName("deve criar uma proposta para cartao")
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "65.804.581/0001-60",
+            "279.541.330-28",
+            "03153553017",
+            "03227436000106"
+    })
+    @DisplayName("deve criar uma proposta para cartao com status ELEGIVEL")
     void test(String documento) throws Exception {
+
+        // mock
+        SubmeteParaAnaliseRequest request = new SubmeteParaAnaliseRequest(
+                -9999L,
+                documento.replaceAll("[^0-9]", ""), // vai chegar SEM mascara
+                "Jose Denes"
+        );
+
+        SubmeteParaAnaliseResponse response = new SubmeteParaAnaliseResponse(
+                1L,
+                documento,
+                "Jordi Henrique Marques Silva",
+                "SEM_RESTRICAO"
+        );
+
+        when(financeiroClientMock.submeteParaAnalise(request)).thenReturn(response);
+
         PropostaRequest propostaRequest = new PropostaRequest(
                 documento,
+                "Rua das Gamelheiras n 82 , Barro Branco, Rio de Janeiro",
+                "Jose Denes",
+                "jordi.silva@zup.com.br",
+                new BigDecimal("2500.00")
+        );
+
+        String payload = mapper.writeValueAsString(propostaRequest);
+
+        String location = mockMvc.perform(
+                        post("/api/v1/propostas")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payload)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(redirectedUrlPattern("http://localhost/api/v1/propostas/*"))
+                .andReturn()
+                .getResponse()
+                .getHeader("location");
+
+        assertNotNull(location);
+
+        Long id = getIdLocation(location);
+
+        Proposta proposta = repository.findById(id).get();
+        assertEquals(StatusDaProposta.ELEGIVEL, proposta.getStatus());
+    }
+
+    @Test
+    @DisplayName("deve criar uma proposta para cartao com status NAO ELEGIVEL")
+    void test() throws Exception {
+
+        // cenario
+        String cpfComRestricao = "31417597232"; // começa com 3 = com_restricao
+
+        // mock
+        SubmeteParaAnaliseRequest request = new SubmeteParaAnaliseRequest(
+                -9999L,
+                cpfComRestricao,
+                "Jordi Henrique Marques Silva"
+        );
+
+        SubmeteParaAnaliseResponse response = new SubmeteParaAnaliseResponse(
+                1L,
+                cpfComRestricao,
+                "Jordi Henrique Marques Silva",
+                "COM_RESTRICAO"
+        );
+
+        when(financeiroClientMock.submeteParaAnalise(request))
+                .thenThrow(FeignException.UnprocessableEntity.class);
+
+        PropostaRequest propostaRequest = new PropostaRequest(
+                cpfComRestricao,
                 "Rua das Gamelheiras n 82 , Barro Branco, Rio de Janeiro",
                 "Jordi Henrique Marques Silva",
                 "jordi.silva@zup.com.br",
@@ -72,10 +151,8 @@ class CriarPropostaControllerTest extends BaseIntegrationTest {
 
         Long id = getIdLocation(location);
 
-        assertTrue(
-                repository.existsById(id),
-                "deveria exisitr uma proposta para o id informado"
-        );
+        Proposta proposta = repository.findById(id).get();
+        assertEquals(StatusDaProposta.NAO_ELEGIVEL, proposta.getStatus());
     }
 
     @Test

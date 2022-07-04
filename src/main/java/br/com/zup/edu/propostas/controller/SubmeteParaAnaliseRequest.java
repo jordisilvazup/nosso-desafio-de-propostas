@@ -2,6 +2,8 @@ package br.com.zup.edu.propostas.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 public class SubmeteParaAnaliseRequest {
 
     @JsonProperty("idProposta")
@@ -28,4 +30,17 @@ public class SubmeteParaAnaliseRequest {
         return nome;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SubmeteParaAnaliseRequest that = (SubmeteParaAnaliseRequest) o;
+        return Objects.equals(documento, that.documento)
+                && Objects.equals(nome, that.nome);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(documento, nome);
+    }
 }
