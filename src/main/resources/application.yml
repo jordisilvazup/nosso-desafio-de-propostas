@@ -1,0 +1,45 @@
+spring:
+    output:
+        ansi:
+            enabled: ALWAYS
+    ##
+    # Jackson e JSON
+    ##
+    jackson:
+        serialization:
+            indent_output: true
+    datasource:
+        driverClassName: org.postgresql.Driver
+        password: ${DB_PASSWORD:password}
+        url: ${DB_URL:jdbc:postgresql://localhost:5433/propostas}
+        username: ${DB_USERNAME:postgres}
+    ##
+    # JPA e Hibernate
+    ##
+    jpa:
+        hibernate:
+            ddl-auto: ${DDL_MODE:update}
+        open-in-view: false
+        properties:
+            hibernate:
+                format_sql: ${FORMAT_SQL:true}
+        show-sql: ${SHOW_SQL:true}
+
+##
+# Integracoes
+##
+integracoes:
+    financeiro:
+        url: ${INTEGRACAO_FINANCEIRO_URL:http://localhost:9999}
+
+##
+# Open Feign
+##
+feign:
+    client:
+        config:
+            financeiroClient:
+                loggerLevel: full
+
+logging.level.br.com.zup.edu.propostas.controller.FinanceiroClient: DEBUG
+
