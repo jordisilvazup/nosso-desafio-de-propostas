@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
@@ -20,6 +21,7 @@ public class AssociaCartaoAPropostaJob {
     private CartaoRepository cartaoRepository;
 
 
+    @Transactional
     @Scheduled(fixedDelay = 5 * 1000)
     public void executa() {
 
