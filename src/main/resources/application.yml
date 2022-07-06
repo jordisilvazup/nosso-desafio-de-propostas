@@ -1,3 +1,16 @@
+##
+# Server
+##
+server:
+    error:
+        include-message: always
+        include-exception: false
+        include-stacktrace: on_param
+        include-binding-errors: always
+
+##
+# Spring
+##
 spring:
     output:
         ansi:
@@ -13,6 +26,9 @@ spring:
         password: ${DB_PASSWORD:password}
         url: ${DB_URL:jdbc:postgresql://localhost:5433/propostas}
         username: ${DB_USERNAME:postgres}
+        hikari:
+            maximum-pool-size: 10
+            connection-timeout: 5000
     ##
     # JPA e Hibernate
     ##
@@ -40,6 +56,8 @@ feign:
         config:
             financeiroClient:
                 loggerLevel: full
+                connectionTimeout: 5000
+                readTimeout: 10000
 
 logging.level.br.com.zup.edu.propostas.controller.FinanceiroClient: DEBUG
 

@@ -8,11 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.net.URI;
+
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
 public class CriarPropostaController {
@@ -25,6 +28,23 @@ public class CriarPropostaController {
         this.financeiroClient = financeiroClient;
     }
 
+    /**
+     * Processos 1-N Threads
+     * Thread Java - Thread OS
+     *
+     * Thread -> Connnection -> Thread ou Processo
+     * 200 threads -> 200 connections * 2 = 400 connections
+     *
+     * Pool de conexoes: 10 conexoes
+     *  - initial: 5
+     *  - max    : 30
+     *  - min    : 10
+     *
+     * Request -> Thread (1-4mb)
+     * Por padrão
+     *  - Tomcat: pool de 200 threads
+     *  - HikariCP - Pool de conexões
+     */
     @Transactional // tem um Contexto de Persistencia
     @PostMapping("/api/v1/propostas")
     public ResponseEntity<?> criar(
@@ -46,15 +66,16 @@ public class CriarPropostaController {
     }
 
     private StatusDaProposta submetePropostaParaAnalise(Proposta proposta) {
-
+        // timeout
+        // retry
+        // retry + backoff; 1, 3, 5, 7, ....
+        // retry + exponential backoff; 1s, 2s, 4, 8, 16, 32...
+        // retry + exponential backoff + jitter; 1.004, 2.123, 4.045, 7.987, 16, 32...
+        // circuit breaker
+        // bulkhead
+        // ...
         try {
-            Thread.sleep(20*1000*60); // 20min
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            // 2xx ou 404 (null)
+            // 2xx ou 404 (null) - IDEMpotente
             SubmeteParaAnaliseResponse resultado = financeiroClient
                     .submeteParaAnalise(new SubmeteParaAnaliseRequest(
                             proposta.getId(), proposta.getDocumento(), proposta.getNome())
@@ -65,6 +86,9 @@ public class CriarPropostaController {
 
         } catch (FeignException.UnprocessableEntity e) {   // erro 422 = COM_RESTRICAO
             return StatusDaProposta.NAO_ELEGIVEL;
+        } catch (Exception e) {
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR,
+                    "não foi possivel submeter proposta para analise");
         }
     }
 }
