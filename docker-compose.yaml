@@ -133,7 +133,7 @@ services:
       - grafana-volume:/var/lib/grafana
     network_mode: bridge
     ports:
-      - "3000:3000"
+      - "13000:3000"
     depends_on:
       - prometheus
 

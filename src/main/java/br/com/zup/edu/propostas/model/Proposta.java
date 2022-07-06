@@ -1,10 +1,13 @@
 package br.com.zup.edu.propostas.model;
 
 import br.com.zup.edu.propostas.controller.StatusDaProposta;
+import br.com.zup.edu.propostas.jobs.Cartao;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -32,6 +35,10 @@ public class Proposta {
     @Column(nullable = false)
     private BigDecimal salario;
 
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime criadaEm;
+
     /**
      * Migrations:
      *  1. cria coluna NULLABLE
@@ -41,6 +48,9 @@ public class Proposta {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private StatusDaProposta status = StatusDaProposta.NAO_ELEGIVEL;
+
+    @OneToOne
+    private Cartao cartao;
 
     public Proposta(String documento, String endereco, String nome, String email, BigDecimal salario) {
         this.documento = documento;
@@ -70,10 +80,19 @@ public class Proposta {
         return nome;
     }
 
+    public LocalDateTime getCriadaEm() {
+        return criadaEm;
+    }
+
     public StatusDaProposta getStatus() {
         return status;
     }
     public void setStatus(StatusDaProposta status) {
         this.status = status;
     }
+
+    public void associaAo(Cartao cartao) {
+        this.cartao = cartao;
+    }
+
 }

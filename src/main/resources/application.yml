@@ -47,6 +47,8 @@ spring:
 integracoes:
     financeiro:
         url: ${INTEGRACAO_FINANCEIRO_URL:http://localhost:9999}
+    cartoes:
+        url: ${INTEGRACAO_CARTOES_URL:http://localhost:8888}
 
 ##
 # Open Feign
@@ -58,6 +60,11 @@ feign:
                 loggerLevel: full
                 connectionTimeout: 5000
                 readTimeout: 10000
+            cartaoClient:
+                loggerLevel: full
+                connectionTimeout: 5000
+                readTimeout: 10000
 
+logging.level.br.com.zup.edu.propostas.jobs.CartaoClient: DEBUG
 logging.level.br.com.zup.edu.propostas.controller.FinanceiroClient: DEBUG
 
