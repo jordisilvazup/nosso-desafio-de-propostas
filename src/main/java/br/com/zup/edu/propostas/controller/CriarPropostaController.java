@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.concurrent.Executor;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -31,19 +32,19 @@ public class CriarPropostaController {
     /**
      * Processos 1-N Threads
      * Thread Java - Thread OS
-     *
+     * <p>
      * Thread -> Connnection -> Thread ou Processo
      * 200 threads -> 200 connections * 2 = 400 connections
-     *
+     * <p>
      * Pool de conexoes: 10 conexoes
-     *  - initial: 5
-     *  - max    : 30
-     *  - min    : 10
-     *
+     * - initial: 5
+     * - max    : 30
+     * - min    : 10
+     * <p>
      * Request -> Thread (1-4mb)
      * Por padrão
-     *  - Tomcat: pool de 200 threads
-     *  - HikariCP - Pool de conexões
+     * - Tomcat: pool de 200 threads
+     * - HikariCP - Pool de conexões
      */
     @Transactional // tem um Contexto de Persistencia
     @PostMapping("/api/v1/propostas")
@@ -54,7 +55,6 @@ public class CriarPropostaController {
         Proposta proposta = request.toModel(repository);
         repository.save(proposta); // INSERT -> MANAGED
 
-        // submeter proposta para analise
         StatusDaProposta status = submetePropostaParaAnalise(proposta);
         proposta.setStatus(status);
 

@@ -2,68 +2,82 @@
 # Server
 ##
 server:
-    error:
-        include-message: always
-        include-exception: false
-        include-stacktrace: on_param
-        include-binding-errors: always
+  error:
+    include-message: always
+    include-exception: false
+    include-stacktrace: on_param
+    include-binding-errors: always
 
 ##
 # Spring
 ##
 spring:
-    output:
-        ansi:
-            enabled: ALWAYS
-    ##
-    # Jackson e JSON
-    ##
-    jackson:
-        serialization:
-            indent_output: true
-    datasource:
-        driverClassName: org.postgresql.Driver
-        password: ${DB_PASSWORD:password}
-        url: ${DB_URL:jdbc:postgresql://localhost:5433/propostas}
-        username: ${DB_USERNAME:postgres}
-        hikari:
-            maximum-pool-size: 10
-            connection-timeout: 5000
-    ##
-    # JPA e Hibernate
-    ##
-    jpa:
-        hibernate:
-            ddl-auto: ${DDL_MODE:update}
-        open-in-view: false
-        properties:
-            hibernate:
-                format_sql: ${FORMAT_SQL:true}
-        show-sql: ${SHOW_SQL:true}
+  output:
+    ansi:
+      enabled: ALWAYS
+  ##
+  # Jackson e JSON
+  ##
+  jackson:
+    serialization:
+      indent_output: true
+  datasource:
+    driverClassName: org.postgresql.Driver
+    password: ${DB_PASSWORD:password}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/propostas}
+    username: ${DB_USERNAME:postgres}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 5000
+  ##
+  # JPA e Hibernate
+  ##
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_MODE:update}
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: ${FORMAT_SQL:true}
+    show-sql: ${SHOW_SQL:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+
+
 
 ##
 # Integracoes
 ##
 integracoes:
-    financeiro:
-        url: ${INTEGRACAO_FINANCEIRO_URL:http://localhost:9999}
-    cartoes:
-        url: ${INTEGRACAO_CARTOES_URL:http://localhost:8888}
+  financeiro:
+    url: ${INTEGRACAO_FINANCEIRO_URL:http://localhost:9999}
+    port: 9999
+  cartoes:
+    url: ${INTEGRACAO_CARTOES_URL:http://localhost:8888}
+    port: 8888
 
 ##
 # Open Feign
 ##
 feign:
-    client:
-        config:
-            financeiroClient:
-                loggerLevel: full
-                connectionTimeout: 5000
-                readTimeout: 10000
-            cartaoClient:
-                loggerLevel: full
-                connectionTimeout: 5000
-                readTimeout: 10000
+  client:
+    config:
+      financeiroClient:
+        loggerLevel: full
+        connectionTimeout: 5000
+        readTimeout: 10000
+      cartaoClient:
+        loggerLevel: full
+        connectionTimeout: 5000
+        readTimeout: 10000
 
 logging.level.br.com.zup.edu.propostas.jobs.CartaoClient: DEBUG
 logging.level.br.com.zup.edu.propostas.controller.FinanceiroClient: DEBUG
