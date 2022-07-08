@@ -16,7 +16,7 @@ import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 public class PropostaRequest {
 
     @NotBlank
-    @DocumentoValido
+//    @DocumentoValido
     private String documento;
 
     @NotBlank

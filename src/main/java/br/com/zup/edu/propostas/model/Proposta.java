@@ -93,6 +93,16 @@ public class Proposta {
 
     public void associaAo(Cartao cartao) {
         this.cartao = cartao;
+        this.status = StatusDaProposta.ELEGIVEL_COM_CARTAO_ASSOCIADO;
     }
 
+    @Override
+    public String toString() {
+        return "Proposta{" +
+                "id=" + id +
+                ", documento='" + documento + '\'' +
+                ", nome='" + nome + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }
