@@ -5,6 +5,8 @@ import br.com.zup.edu.propostas.repository.PropostaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -13,6 +15,7 @@ import java.util.List;
 
 import static br.com.zup.edu.propostas.controller.StatusDaProposta.*;
 
+@ConditionalOnExpression("${jobs.associaPropostas.ativo}")
 @Service
 public class AssociaCartaoAPropostaJob {
 
@@ -28,15 +31,18 @@ public class AssociaCartaoAPropostaJob {
     @Autowired
     private TransactionTemplate transactionTemplate;
 
-//    @Transactional // Contexto de Persistencia = EntityManager (Session) -> Cache de 1o Nivel -> Map<Long, Entity>
-    @Scheduled(fixedDelay = 30 * 1000) // 30s
-    public void executa() {
-        boolean pendente = true;
-        while (pendente) {
+    @Value("${jobs.associaPropostas.ativo}")
+    private Boolean ativo;
 
+//    @Transactional // Contexto de Persistencia = EntityManager (Session) -> Cache de 1o Nivel -> Map<Long, Entity>
+    @Scheduled(fixedDelay = 30 * 1000, initialDelay = 5 * 1000) // 30s
+    public void executa() {
+
+        Boolean pendente = true;
+        while (pendente) {
             pendente = transactionTemplate.execute((status) -> {
 
-                List<Proposta> elegiveis = repository.findTop2ByStatusOrderByCriadaEmAsc(ELEGIVEL);
+                List<Proposta> elegiveis = repository.findTop10ByStatusOrderByCriadaEmAsc(ELEGIVEL);
                 if (elegiveis.isEmpty()) {
                     return false;
                 }
@@ -50,16 +56,16 @@ public class AssociaCartaoAPropostaJob {
                     }
 
                     Cartao cartao = cartaoGerado.toModel();
-                    cartaoRepository.save(cartao); // INSERT
+                    cartaoRepository.save(cartao); // MANAGED -> ID -> nexval() | IDENTITY -> INSERT
 
                     proposta.associaAo(cartao);
                     repository.save(proposta); // UPDATE
                 });
 
                 return true;
-            });
+            }); // commit
         }
-    } // commit
+    }
 
     private CartaoGeradoResponse buscaCartaPara(Proposta proposta) {
         try {

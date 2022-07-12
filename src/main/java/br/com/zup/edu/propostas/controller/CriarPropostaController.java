@@ -5,6 +5,7 @@ import br.com.zup.edu.propostas.model.Proposta;
 import br.com.zup.edu.propostas.repository.PropostaRepository;
 import feign.FeignException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,7 +15,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 

@@ -39,7 +39,24 @@ spring:
     properties:
       hibernate:
         format_sql: ${FORMAT_SQL:true}
+        jdbc:
+          batch_size: 10
+          order_inserts: true
+          order_updates: true
     show-sql: ${SHOW_SQL:true}
+
+##
+# DataSource Proxy
+# (https://github.com/gavlyukovskiy/spring-boot-data-source-decorator)
+# It allows us to log the SQL statements that are batched by Hibernate batchSize
+##
+decorator:
+  datasource:
+    datasource-proxy:
+      multiline: true
+      query:
+        enable-logging: true
+        log-level: info
 
 management:
   endpoints:
@@ -81,4 +98,11 @@ feign:
 
 logging.level.br.com.zup.edu.propostas.jobs.CartaoClient: DEBUG
 logging.level.br.com.zup.edu.propostas.controller.FinanceiroClient: DEBUG
+
+
+##
+# Jobs
+##
+
+jobs.associaPropostas.ativo: true
 

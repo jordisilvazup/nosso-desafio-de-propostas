@@ -2,10 +2,7 @@ package br.com.zup.edu.propostas.jobs;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -13,7 +10,8 @@ import java.time.LocalDateTime;
 public class Cartao {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cartao_seq")
+    @SequenceGenerator(name = "cartao_seq", initialValue = 1, allocationSize = 10)
     private Long id;
 
     @Column(nullable = false, unique = true)
