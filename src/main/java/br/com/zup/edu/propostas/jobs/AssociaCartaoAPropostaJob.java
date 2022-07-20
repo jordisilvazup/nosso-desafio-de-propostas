@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -42,7 +43,7 @@ public class AssociaCartaoAPropostaJob {
         while (pendente) {
             pendente = transactionTemplate.execute((status) -> {
 
-                List<Proposta> elegiveis = repository.findTop10ByStatusOrderByCriadaEmAsc(ELEGIVEL);
+                List<Proposta> elegiveis = repository.findTop5ByStatusOrderByCriadaEmAsc(ELEGIVEL);
                 if (elegiveis.isEmpty()) {
                     return false;
                 }

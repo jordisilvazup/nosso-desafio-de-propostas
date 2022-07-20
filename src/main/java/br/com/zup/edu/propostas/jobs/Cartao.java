@@ -11,7 +11,12 @@ public class Cartao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cartao_seq")
-    @SequenceGenerator(name = "cartao_seq", initialValue = 1, allocationSize = 10)
+    @SequenceGenerator(
+        name = "cartao_seq",
+        sequenceName = "cartao_seq",
+        initialValue = 1,
+        allocationSize = 1
+    )
     private Long id;
 
     @Column(nullable = false, unique = true)

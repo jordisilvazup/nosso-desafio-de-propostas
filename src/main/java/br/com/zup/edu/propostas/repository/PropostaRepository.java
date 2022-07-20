@@ -24,6 +24,6 @@ public interface PropostaRepository extends JpaRepository<Proposta, Long> {
        )
     })
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    List<Proposta> findTop10ByStatusOrderByCriadaEmAsc(StatusDaProposta status);
+    List<Proposta> findTop5ByStatusOrderByCriadaEmAsc(StatusDaProposta status);
 
 }
